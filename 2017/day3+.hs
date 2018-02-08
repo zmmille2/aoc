@@ -1,10 +1,14 @@
+import Data.Map (Map)
+import qualified Data.Map as Map
+
 input = 361527
 
 spiralSolve :: Int -> Int
-spiralSolve n = spiralSolveHelper n (Location (0, 0) (Just 1)) [[1]]
+spiralSolve n = spiralSolveHelper n Map.empty
 
-spiralSolveHelper :: Int -> Location -> [[Int]] -> Int
-spiralSolveHelper n (Location (x, y) _) foo = n
+spiralSolveHelper :: Int -> Map Location Int -> Int
+spiralSolveHelper n _ = n
+--spiralSolveHelper n (Location (x, y) _) foo = n
 
 -- I think I should just pass location around and have checks of when to switch location... is that easy to do though?
 -- can I take a function that takes a location and returns a direction?
@@ -25,14 +29,10 @@ spiralSolveHelper n (Location (x, y) _) foo = n
 -- this would be to allow me to grab values from relative locations: I can't do that if I don't have some handle on the objects
 
 data Direction = R | L | U | D deriving (Show)
-data Location = Location (Int, Int) (Maybe Int) deriving (Show)
-
-getValue :: Location -> Int
-getValue (Location _ Nothing)  = 0
-getValue (Location _ (Just n)) = n
+data Location = Location (Int, Int) deriving (Show)
 
 getDirection :: Location -> Direction
-getDirection (Location (x, y) _)
+getDirection (Location (x, y))
     |(x >  y && x >= -y)                     = U
     | x <= y && x >  -y                      = L
     | x <  y && x <= -y                      = D
