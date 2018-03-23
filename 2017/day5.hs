@@ -1,21 +1,24 @@
 import Data.Char
 import Data.List
 import Data.List.Split
-import Control.Lens
+import Data.Map (Map)
+import qualified Data.Map as Map
 
 runProgram = do
     all <- readFile "inputs/day5.txt"
     let rows = splitOn "\n" all
+    let incr = [0, 1..]
     let nums = map (\x -> read x :: Int) rows
-    return (run 0 nums 0)
+    let inxd = zip incr nums
+    return (run 0 0 (Map.fromAscList inxd))
 
-run :: Int -> [Int] -> Int -> Int
-run index program steps
-    | index >= (length program) = steps
-    | otherwise                 = run (index') program' (steps + 1)
+run :: Int -> Int -> Map Int Int -> Int
+run index steps program 
+    | index >= (Map.size program) = steps
+    | otherwise               = run (index') (steps + 1) program'
     where
-        value = program!!index
+        value = program Map.! index
         index' = index + value
-        program' = program & element index .~ (value + 1)
+        program' = (Map.insert index (value + 1) program)
 
 -- 1075 too low: forgot to replace index + 1 with index' lol
