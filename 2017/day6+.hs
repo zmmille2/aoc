@@ -14,10 +14,10 @@ main = do
     let incr = [0, 1..]
     let inxd = zip incr nums
     let dict = Map.fromAscList inxd
-    return (redistCycle 0 dict Set.empty)
+    return (redistCycle 0 dict (Set.singleton (Map.fromList [(0,10),(1,9),(2,8),(3,7),(4,6),(5,5),(6,4),(7,3),(8,1),(9,1),(10,0),(11,15),(12,14),(13,13),(14,11),(15,12)])))
 
 redistCycle n dict set
-    | seen      = n
+    | seen      = traceShow dict n
     | otherwise = redistCycle (n+1) dict'' set'
     where
         seen    = Set.member dict set
