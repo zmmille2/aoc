@@ -11,13 +11,13 @@ main = do
     all <- readFile "inputs/day8.txt"
     let commands   = splitOn "\n" all
     let registers  = Map.empty
-    return $ runCommands commands registers
+    return $ runCommands commands registers 0
 
-runCommands :: [String] -> Map String Int -> Map String Int
-runCommands [] world = world
-runCommands (command:xs) world
-    | condition = runCommands xs world'
-    | otherwise = runCommands xs world
+runCommands :: [String] -> Map String Int -> Int -> Map String Int
+runCommands [] world biggest = traceShow biggest world
+runCommands (command:xs) world biggest
+    | condition = runCommands xs world' (max biggest value)
+    | otherwise = runCommands xs world biggest
     where
         value                                                               = Map.findWithDefault 0 register world
         world'                                                              = Map.insert register (operator value operand) world
