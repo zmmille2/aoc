@@ -7,6 +7,8 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import Debug.Trace
 
+-- todo: this is by far the most annoying one so far
+
 main = do
     all <- readFile "inputs/day10.txt"
     let nums = map read $ words all :: [Int]
