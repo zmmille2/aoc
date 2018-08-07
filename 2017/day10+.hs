@@ -1,4 +1,4 @@
-import Data.Char
+import Data.Char (ord)
 import Data.List
 import Data.List.Split
 import Data.Map (Map)
@@ -6,17 +6,30 @@ import qualified Data.Map as Map
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Debug.Trace
-
--- todo: this is by far the most annoying one so far
+import Data.Bits
+import Numeric
 
 main = do
     all <- readFile "inputs/day10.txt"
-    let nums = map read $ words all :: [Int]
-    return $ knotHash (Map.fromList (zip [0..255] [0..255])) nums 0 0
+    let inputs = map ord all
+    let length = inputs ++ [17, 31, 73, 47, 23]
+    let numRounds = 64
+    let sparse = runRounds numRounds length ((Map.fromList (zip [0..255] [0..255]), 0, 0))
+    let ordered = Map.toList sparse
+    let raw = map snd ordered
+    let chunks = chunksOf 16 raw
+    return $ map (foldl1' xor) chunks
 
-knotHash :: (Map Int Int) -> [Int] -> Int -> Int -> [Int]
-knotHash dict [] _ _ = Map.elems dict
-knotHash dict (leng:lengs) position skipSize = knotHash (traceShowId dict') (traceShowId lengs) (traceShowId position') (traceShowId (skipSize + 1))
+runRounds :: Int -> [Int] -> ((Map Int Int), Int, Int) -> (Map Int Int)
+runRounds numRounds length (dict, position, skipSize)
+    | numRounds == 0 = dict
+    | otherwise      = runRounds (numRounds - 1) length (dict', position', skipSize')
+        where
+            (dict', position', skipSize') = knotHash dict length position skipSize
+
+knotHash :: (Map Int Int) -> [Int] -> Int -> Int -> ((Map Int Int), Int, Int)
+knotHash dict [] position skipSize = (dict, position, skipSize)
+knotHash dict (leng:lengs) position skipSize = knotHash dict' lengs position' (skipSize + 1)
     where
         position' = mod (position + leng + skipSize) 256
         dict' = tie dict position (leng - 1)
@@ -26,7 +39,7 @@ tie dict pos leng
     | leng <= 0 = dict
     | otherwise = tie dict' pos' leng'
     where
-        pos' = mod (pos + 1) 256
+        pos'  = mod (pos + 1) 256
         leng' = leng - 2
         dict' = swap dict pos (mod ((pos + leng)) 256)
 
@@ -36,10 +49,3 @@ swap dict a b = dict'
         dict' = Map.insert b v (Map.insert a v' dict)
         v     = Map.findWithDefault 0 a dict
         v'    = Map.findWithDefault 0 b dict
-
--- 420 too low, not handling when to start tying correctly...
--- 62250 too high
--- 18632 is not it
--- 20592 is not it
--- 21021 was a typo...
--- 19591 might be it but jeez it's annoying
