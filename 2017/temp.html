@@ -1,0 +1,138 @@
+<div>
+<h1>Background</h1>
+<div>
+
+Blockchain technology is offering a new level of accountability across a range of industries. From storing energy companies' emissions data to recording the source of raw minerals, wood, and metals, the tamper-proof nature of data stored on the blockchain is making it more difficult for individual players to cut corners and use unethical practices.
+
+</div>
+This is especially true in the food logistics industry. While modern consumers may not think too much about the journey food products take, before ending up on our plates ingredients travel thousands of miles through multiple stages on the logistics chain, via multiple suppliers, carriers, and distributors.
+
+In the case that a bad batch of food or drinks is discovered, traditionally it has been challenging to highlight which stage of the logistics process was the root of the problem. Did the farm produce a contaminated batch? Was the produce stored at the right temperature during different stages of transportation? Or has the restaurant or store simply followed unsafe preparation and storage practices?
+
+Restaurants and stores risk ruining customer trust and facing lawsuits if they cannot ensure that the products they sell are of the highest quality. To solve this issue, blockchain technology is offering a means of increasing transparency in the food logistics industry, allowing restaurants and stores to put their faith in new suppliers and distributors. By leveraging a publicly distributed ledger, the supplier, carrier, and restaurant can effectively work together to get the best food possible to customers – without risking exposure to bad actors along the way.
+
+<span class="annotation" style="background-color: #f0e465;" data-author="Craig Corbett" data-annotation="add mention of thermocromatic tag">Using the blockchain, individual players on the logistics chain</span> can be assigned a non-federated identity off-chain that they use to take ownership of a crate of goods. The individual can sign for the goods received and record a picture of the item, which should include a thermocromatic seal. The seal changes colors once a certain temperature is reached, and won't change back. Since the picture lives on chain, anyone with access to the chain can verify that the seal in the picture is still valid. This picture is then stored with their signature on the blockchain, effectively recording the state of the shipment at different stages of its journey.
+
+</div>
+<div>Aiming to take advantage of this game-changing tech, Microsoft partnered with <a href="http://www.hitachi.com/"><span class="annotation" style="background-color: #f0e465;" data-author="Craig Corbett" data-annotation="Please mention which branch/area of the company, to explain why they needed this tech">Hitachi</span></a> to build this infrastructure together, and to make sure that every link in the supply chain was represented on a blockchain. Such an infrastructure could ensure that suppliers, carriers, and distributors are more accountable for producing, storing and serving food in a safe manner:</div>
+<h2>Challenges and Objectives</h2>
+<div>
+
+Blockchain is a decentralized data store which can be used to prove information by storing some signature in the network.  For this discussion, suffice to say that blockchain is immutable, decentralized, and trusted by those who use it.  While these statements come with some qualifiers, we won't be delving into those nuances here.
+<h2>General Flow</h2>
+<div>In general, the flow from farm to table of a shipment follows the path outlined in the following chart:</div>
+<img class="alignnone size-full wp-image-8084" src="https://microsoft.com/developerblog/wp-content/uploads/powerpoint.png" alt="" width="1476" height="827" />
+<div></div>
+<div>In this example, a farmer creates a shipment and registers it on the chain.  When a carrier picks it up, they initiate a transfer with the farmer and take responsibility for the package on the chain.  Additionally, they could include a picture of the state of the seal, to verify that it's been added to the package and that it hasn't risen above the allowed temperature during storage.</div>
+<div></div>
+<div>They take the package to a warehouse in this example, which puts another transfer on the chain. The warehouse can add that same info, and so can the second carrier, who finally takes it to the restaurant.  Not only is there undeniable proof of where a bad shipment went wrong, but if the patrons want, they could trace the history of their food all the way back to the farm where their produce came from since all of that information is saved publicly on the chain.</div>
+<div></div>
+<h2>Proof of Concept (PoC)</h2>
+<h2>Methodologies</h2>
+Please see the technical section in the following document:
+
+https://microsoft.sharepoint.com/teams/CSEComms/SitePages/Code%20Story%20Template.aspx?web=1
+<h3><span class="annotation" style="background-color: #f0e465;" data-author="Craig Corbett" data-annotation="Introduce each section. The first challenge we tackled was the login... ">Login</span></h3>
+<div>We wrote a webpage that interacts with a blockchain that allows an actor to create or take ownership of a crate of goods, with approval needed from the current owner.  First, the user creates a browser session and associates it with their identity as stored in the uPort app.</div>
+</div>
+<div></div>
+<div><img class="alignnone size-full wp-image-8896" src="https://microsoft.com/developerblog/wp-content/uploads/UPort-Login-UI-Flow.png" alt="" width="742" height="1129" /></div>
+<div></div>
+<div>
+<div>To do this, the user is presented with a QR code. The web service puts this token on chain, attesting that it created a new session.</div>
+<div>
+<pre class="lang:default decode:true" title="Get route for the QR Code">app.get('/login-qr', async function (req: any, res: any) {
+    _self.NoCache(res);
+    const claims = {
+    id: req.auth.id
+    };
+    await _uport.LoginQrCode(res, await _self.tokens.Sign(claims));
+});</pre>
+<span class="annotation" style="background-color: #f0e465;" data-author="Craig Corbett" data-annotation="Please remember to put whole technical section in narrative tense (see template) ">This get request is used to create a token to associate with the current session.</span>
+
+</div>
+</div>
+<div>
+
+<img class="alignnone size-full wp-image-8083" src="https://microsoft.com/developerblog/wp-content/uploads/login.png" alt="" width="939" height="948" />
+<div>The user, upon seeing this QR code, can scan it, which sends a request On their <a href="https://www.uport.me">uPort App</a> they scan this QR code. This gives them a notification on their phone, letting them know which contract they're about to interact with, and allowing them to approve or deny the attestation.  The user gets to verify who they're working with, and the web client associates the user's identity with the current client session.</div>
+<img class="alignnone size-full wp-image-8107" src="https://microsoft.com/developerblog/wp-content/uploads/loginnotif.png" alt="" width="750" height="1334" />
+<div>Every QR code we generate encodes a callback with a token associated with the user and desired action that we want to take. This associates the session on the browser with the user's information from uPort via callback on the blockchain.  To observe when this has happened, the browser polls the blockchain to see when a block is mined that contains the update to the contract on chain with the user's information to associate with the session created.</div>
+</div>
+<div></div>
+<div>
+<div>Once the user has their information on the chain, they are logged into the system and authenticated, all without a trusted third-party being involved.</div>
+<h3>Package Creation</h3>
+<div>Now that the user has logged in, they can create a package on the web browser. In this example, the supplier has just grown and packed a new shipment of cucumbers.</div>
+</div>
+<img class="alignnone size-full wp-image-8114" src="https://microsoft.com/developerblog/wp-content/uploads/cucumber.png" alt="" width="811" height="284" />
+<div>
+<div>
+
+Today this step just associates this data naively to my identity on a test chain, but in a production environment, the farmer would be able to attach a picture of a crate of 10 cucumbers, to assert their initial appearance. Even though I'm associated with this session, the app makes sure that I'm the one that wants to take responsibility for this transaction.
+
+<img class="alignnone size-full wp-image-8108" src="https://microsoft.com/developerblog/wp-content/uploads/confirmtx.png" alt="" width="750" height="1334" />
+
+Once I approve this transaction from being put on the chain, the information is associated with my decentralized identity. When I list out the packages this session knows about, I can see the address where this transaction is stored on the chain.  An example of one of these transactions on chain can be seen <a href="https://rinkeby.etherscan.io/tx/0x14cb5bb832aed31547c79300b476a4fa7ee559d34f92f081df94f73d06f7c229#eventlog">here on etherscan.io</a>.
+
+</div>
+<h3>Package Transfer</h3>
+<div>
+
+Now, in order for me to be able to leverage blockchain usefully, I need to be able to transfer this and record that transaction on the chain. Luckily, I can do this! By selecting a package, I can offer to transfer this package to another identity. When I do so, I get a popup asking to confirm.
+
+<img class="alignnone size-full wp-image-8115" src="https://microsoft.com/developerblog/wp-content/uploads/transfercucumber.png" alt="" width="806" height="477" />
+
+This displays another QR code, since my browser session needs to know which user to associate this transfer with.  Here again, the browser watches the public chain to make sure it understands when and where that transaction takes place.
+<pre class="lang:default decode:true" title="Watches for transactions on a given chain">public async MonitorTxQueue(): Promise&lt;any&gt; {
+    const toDequeue: Array&lt;string&gt; = [];
+
+    for (const txHash in this.txQueue) {
+        winston.info(`Watching ${txHash}`);
+        const receipt = await this.web3.GetTransactionReceipt(txHash);
+
+        if (receipt !== null &amp;&amp; receipt.blockNumber) {
+            winston.info(`Pushing TX for Package ${this.txQueue[txHash]}`);
+            const packageId = this.txQueue[txHash];
+            const pkg = this.packages_cache[packageId];
+
+            pkg.transaction = txHash;
+            pkg.contractAddress = '0x' + this.GetContractAddress(receipt);
+            toDequeue.push(txHash);
+            winston.debug(pkg);
+        }
+    }
+
+    for (const index in toDequeue) {
+        const txHash = toDequeue[index];
+        winston.debug(`Removing TX ${txHash}`);
+        delete this.txQueue[txHash];
+    }
+
+    return Object.keys(this.txQueue).length !== 0;
+}</pre>
+While the browser watches the chain for updates, the user is presented with another QR code to scan.  This time, the recipient would scan the QR code, and get a notification ensuring that they're taking ownership of what they're expecting.  In the future, they could include information about the pickup, such as the date and time, and especially a picture of the package itself, to ensure that the aforementioned temperature sticker is applied and associated with that crate.
+
+</div>
+<img class="alignnone size-full wp-image-8109" src="https://microsoft.com/developerblog/wp-content/uploads/transferqr.png" alt="" width="804" height="625" />
+<div></div>
+<div>Once the carrier accepts, that information goes onto the chain and the transfer is complete. The web browser, which again, has been watching the chain for the completion of this transfer, updates its internal model of who owns the package.  Voila!  We've transferred a package from supplier to carrier, all verifiable, yet decentralized, sitting on a blockchain.</div>
+<h1>Issues</h1>
+<h3>Mining transactions is slow</h3>
+<div>In this example, every time a QR code is displayed, that turns into a transaction which is mined on the chain. This can be slow. It takes, at time of writing, <a href="https://etherscan.io/chart/blocktime">somewhere between 15 and 30 seconds to mine a block</a>. For a traditional application, login takes nowhere near this amount of time. Also, if packages are added individually to the chain, this can mean that the time to transfer a truckload of goods from a carrier to a restaurant may increase quite a bit.</div>
+<div>This can be mitigated by reducing the number of times a block is introduced to the chain. In particular, two parties transferring could perform multiple transactions together off chain, logging them to the chain afterwards. While this introduces the need to trust the other party a little, the "batch size" could be adjusted to meet an acceptable tradeoff of risk versus convenience.</div>
+<h3>Sacrifices for the demo</h3>
+<div>In this demo, we manually scanned QR codes with our phones. In reality, this could be automated to a certain degree. We did play around a little with adding links to QR codes so that the users could just interact with mobile pages.  At the end of the day, carriers won't be dealing with unitary crates of cucumbers, but with truckloads of them at a time, and having some <a href="https://www.blockstream.com/sidechains.pdf">sort of sidechain</a> would be a great way to minimize the number of times that a transaction hits the chain.  This was not explored in this demo.</div>
+</div>
+<div></div>
+<h2>Summary</h2>
+<div></div>
+<div>In this section please sum up the processes you used, and also outline how the new system meets the aims of the client. You can also mention how your project can improve processes in the future.</div>
+<div></div>
+<div>Then please add the link to your GitHub</div>
+<div></div>
+<div>
+<h2>Opportunities to Reuse</h2>
+<div>This offers the exciting opportunity to bring <a href="https://tools.ietf.org/html/rfc6749">OAuth</a> to the blockchain. We are working to understand what a general solution for this might look like, and considering how we might build out an open source library that fits the specs of OAuth 2.0 for blockchain.  In particular, the flow that we created resembles <a href="https://developers.google.com/identity/protocols/OAuth2ForDevices">Google's OAuth for devices flow</a>, and we believe that this solution could be transformed into a generic OAuth on blockchain library.</div>
+<div></div>
+</div>
